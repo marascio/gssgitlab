@@ -111,7 +111,7 @@ class GssGitlab:
             if not method:
                 return 10
 
-            if method == 'gssapi-with-mic':
+            if method.startswith('gssapi-'):
                 if keyid:
                     if args:
                         # during execution, the first argument is '-c' which needs to be stripped out
@@ -120,6 +120,7 @@ class GssGitlab:
                     return 11
                 return 12
 
+        # LRM: Why would we EVER want to spawn a shell? Never, as far as I know...
         # otherwise pass to shell, either for standard forcedcommand or local services under git account
         os.execv('/bin/sh', ['/bin/sh'] + args)
         return 13
@@ -135,7 +136,7 @@ class GssGitlab:
         try:
             with open(os.environ['SSH_USER_AUTH'], 'r') as ftmp:
                 method, authdata = ftmp.read().strip().split(maxsplit=1)
-            if (method == 'gssapi-with-mic') and self.is_valid_principal(authdata):
+            if method.startswith('gssapi-') and self.is_valid_principal(authdata):
                 with open(self.k5keys, 'r') as ftmp:
                     keydb = dict([line.split() for line in ftmp])
                     return method, keydb.get(authdata)
